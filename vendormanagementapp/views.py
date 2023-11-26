@@ -15,32 +15,11 @@ from django.db import models
 class VendorListCreateView(generics.ListCreateAPIView):
     queryset = Vendor.objects.all()
     serializer_class = VendorSerializer
+    filterset_fields = ['name']
 
 class VendorRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Vendor.objects.all()
     serializer_class = VendorSerializer
-
-# class VendorPerformanceView(generics.RetrieveAPIView):
-#     queryset = Vendor.objects.all()
-#     serializer_class = VendorSerializer
-
-#     def retrieve(self, request, *args, **kwargs):
-#         instance = self.get_object()
-#         serializer = self.get_serializer(instance)
-#         # Calculate performance metrics using database-level aggregations
-#         completed_pos = instance.purchase_orders.filter(status='completed')
-#         total_completed_pos = completed_pos.count()
-
-#         performance_metrics = {
-#             'on_time_delivery_rate': completed_pos.filter(delivery_date__lte=F('acknowledgment_date')).count() / total_completed_pos if total_completed_pos > 0 else 0,
-#             'quality_rating_avg': completed_pos.filter(quality_rating__isnull=False).aggregate(avg_quality=Sum('quality_rating'))['avg_quality'] / total_completed_pos if total_completed_pos > 0 else 0,
-#             'average_response_time': completed_pos.filter(acknowledgment_date__isnull=False).aggregate(avg_response_time=Sum(F('acknowledgment_date') - F('issue_date'), output_field=models.DurationField()))['avg_response_time'].total_seconds() / total_completed_pos if total_completed_pos > 0 else 0,
-#             'fulfillment_rate': completed_pos.filter(quality_rating__isnull=True).count() / instance.purchase_orders.count() if total_completed_pos > 0 else 0,
-#         }
-
-#         data = serializer.data
-#         data.update(performance_metrics)
-#         return Response(data)
 
 
 class VendorPerformanceView(generics.RetrieveAPIView):
@@ -80,7 +59,7 @@ class AcknowledgePurchaseOrderView(generics.UpdateAPIView):
             raise Http404("Purchase Order does not exist")
 
         acknowledgment_date = request.data.get('acknowledgment_date', None)
-        print(acknowledgment_date)
+        # print(acknowledgment_date)
         if acknowledgment_date is not None:
             # Validate and set the provided acknowledgment date
             purchase_order.acknowledgment_date = acknowledgment_date
@@ -108,6 +87,8 @@ def update_vendor_metrics(sender, instance, **kwargs):
 class PurchaseOrderListCreateView(generics.ListCreateAPIView):
     queryset = PurchaseOrder.objects.all()
     serializer_class = PurchaseOrderSerializer
+    filterset_fields = ['po_number','status','quality_rating']
+
 
 class PurchaseOrderRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = PurchaseOrder.objects.all()
